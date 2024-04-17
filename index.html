@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf8">
+        <title>WebController</title>
+
+        <style>
+            #wrapper{
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: auto;
+                height: auto;
+                min-width: 100%;
+                min-height: 90%;
+                z-index: -1;
+            }
+
+            #pane{
+                position: relative;
+                width: 100%;
+                height: auto;
+            }
+
+            #status{
+                position: fixed;
+                left: 0;
+                top: 90%;
+            }
+        </style>
+
+        <script type="text/javascript">
+            var controller_elems = {
+                'up_button': {
+                    'type': 'button',
+                    'position': [0, 0],
+                    'is_pressed': false,
+                    'key': '',
+                    'value': '',
+                    'bit_order': 0
+                },
+                'down_button': {
+                    'type': 'button',
+                    'position': [0, 0],
+                    'is_pressed': false,
+                    'key': '',
+                    'value': '',
+                    'bit_order': 0
+                },
+                'left_button': {
+                    'type': 'button',
+                    'position': [0, 0],
+                    'is_pressed': false,
+                    'key': '',
+                    'value': '',
+                    'bit_order': 0
+                },
+                'right_button': {
+                    'type': 'button',
+                    'position': [0, 0],
+                    'is_pressed': false,
+                    'key': '',
+                    'value': '',
+                    'bit_order': 0
+                },
+                'a_button': {
+                    'type': 'button',
+                    'position': [0, 0],
+                    'is_pressed': false,
+                    'key': '',
+                    'value': '',
+                    'bit_order': 0
+                },
+                'b_button': {
+                    'type': 'button',
+                    'position': [0, 0],
+                    'is_pressed': false,
+                    'key': '',
+                    'value': '',
+                    'bit_order': 0
+                },
+                'x_button': {
+                    'type': 'button',
+                    'position': [0, 0],
+                    'is_pressed': false,
+                    'key': '',
+                    'value': '',
+                    'bit_order': 0
+                },
+                'y_button': {
+                    'type': 'button',
+                    'position': [0, 0],
+                    'is_pressed': false,
+                    'key': '',
+                    'value': '',
+                    'bit_order': 0
+                }
+            }
+
+            ws_connection = undefined;
+
+            function send_key(){
+                if(ws_connection.readyState != 1) return;
+                
+                let payload = 0;
+
+                Object.values(controller_elems).forEach(elem => {
+                    switch(elem['type']){
+                        case 'button':
+                            payload |= elem['is_pressed']? 1 << elem['bit_order'] : 0;
+                            break;
+                        default:
+                            break;
+                    }
+                });
+
+                ws_connection.send(payload);
+            }
+
+            function state_update(){
+                let connection_state = document.getElementById('connection_state');
+                connection_state.innerHTML = (function(){
+                    switch(ws_connection.readyState){
+                        case 0:
+                            return 'Connecting';
+                        case 1:
+                            return 'Open';
+                        case 2:
+                            return 'Closing';
+                        case 3:
+                            return 'Closed(or Error)';
+                        default:
+                            return `Unknown: ${ws_connection.readyState}`;
+                    }
+                }());
+            }
+
+            function setup(){
+                const host_address = 'ws://localhost:443';
+                ws_connection = new WebSocket(host_address);
+
+                const wrapper = document.getElementById('wrapper');
+                const pane = document.getElementById('pane');
+
+                pane.width = wrapper.clientWidth;
+                pane.height = wrapper.clientHeight;
+
+                let place_four_buttons = function(btn1, btn2, btn3, btn4, center, radius){
+                    btn1['position'] = [center[0], center[1] - radius];
+                    btn2['position'] = [center[0] + radius, center[1]];
+                    btn3['position'] = [center[0], center[1] + radius];
+                    btn4['position'] = [center[0] - radius, center[1]];
+                };
+
+                place_four_buttons(
+                    controller_elems['up_button'],
+                    controller_elems['right_button'],
+                    controller_elems['down_button'],
+                    controller_elems['left_button'],
+                    [pane.width / 5, pane.height / 2],
+                    pane.width / 10
+                )
+
+                place_four_buttons(
+                    controller_elems['y_button'],
+                    controller_elems['a_button'],
+                    controller_elems['b_button'],
+                    controller_elems['x_button'],
+                    [pane.width * 4 / 5, pane.height / 2],
+                    pane.width / 10
+                )
+
+                controller_elems['up_button']['key'] = 'w';
+                controller_elems['left_button']['key'] = 'a';
+                controller_elems['down_button']['key'] = 's';
+                controller_elems['right_button']['key'] = 'd';
+
+                controller_elems['y_button']['key'] = 'i';
+                controller_elems['x_button']['key'] = 'j';
+                controller_elems['b_button']['key'] = 'k';
+                controller_elems['a_button']['key'] = 'l';
+
+                controller_elems['up_button']['value'] = 'U';
+                controller_elems['down_button']['value'] = 'D';
+                controller_elems['left_button']['value'] = 'L';
+                controller_elems['right_button']['value'] = 'R';
+
+                controller_elems['a_button']['value'] = 'A';
+                controller_elems['b_button']['value'] = 'B';
+                controller_elems['x_button']['value'] = 'X';
+                controller_elems['y_button']['value'] = 'Y';
+
+                controller_elems['up_button']['bit_order'] = 0;
+                controller_elems['down_button']['bit_order'] = 1;
+                controller_elems['left_button']['bit_order'] = 2;
+                controller_elems['right_button']['bit_order'] = 3;
+
+                controller_elems['a_button']['bit_order'] = 4;
+                controller_elems['b_button']['bit_order'] = 5;
+                controller_elems['x_button']['bit_order'] = 6;
+                controller_elems['y_button']['bit_order'] = 7;
+
+                const host = document.getElementById('host');
+                host.innerHTML = host_address;
+            }
+
+            function draw_pane(){
+                const pane = document.getElementById('pane');
+                const context = pane.getContext('2d');
+
+                Object.values(controller_elems).forEach(elem => {
+                    const fill_style = context.fillStyle;
+                    const font = context.font;
+                    const text_align = context.textAlign;
+                    const text_baseline = context.textBaseLine;
+
+                    switch(elem['type']){
+                        case 'button':
+                            context.fillStyle = elem['is_pressed']? '#404040' : '#000000';
+                            context.beginPath();
+                            context.arc(elem.position[0], elem.position[1], pane.width / 20, 0, 2 * Math.PI);
+                            context.closePath();
+                            context.fill();
+
+                            context.font = `${pane.width / 20}px gothic`;
+                            context.textAlign = 'center';
+                            context.textBaseLine = 'bottom';
+                            context.fillStyle = '#FFFFFF';
+                            context.fillText(elem['value'], elem.position[0], elem.position[1])
+                        break;
+
+                        default:
+                        break;
+                    }
+
+                    context.fillStyle = fill_style;
+                    context.font = font;
+                    context.textAlign = text_align;
+                    context.textBaseLine = text_baseline;
+                })
+            }
+
+            document.addEventListener('keydown', e => {
+                Object.values(controller_elems).forEach(
+                    elem => {
+                        switch(elem['type']){
+                            case 'button':
+                                if(e.key == elem['key']) elem['is_pressed'] = true;
+                                break;
+                            
+                            default:
+                                break;
+                        }
+                    }
+                );
+            })
+
+            document.addEventListener('keyup', e => {
+                Object.values(controller_elems).forEach(
+                    elem => {
+                        switch(elem['type']){
+                            case 'button':
+                                if(elem['key'] == e.key) elem['is_pressed'] = false;
+                                break;
+                            
+                            default:
+                                break;
+                        }
+                    }
+                );
+            })
+
+            window.onload = () => {
+                setup();
+                setInterval(() => {
+                    state_update();
+                    send_key();
+                    draw_pane();
+                }, 50);
+            }
+        </script>
+    </head>
+    <body>
+        <div id="wrapper">
+            <canvas id="pane"></canvas>
+        </div>
+        <div id="status">
+            <p>接続の状況:<span id="connection_state"></span><p>
+            <p>接続先:<span id="host"></span></p>
+        </div>
+    </body>
+</html>

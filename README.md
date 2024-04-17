@@ -1,6 +1,8 @@
 # WebController
 html5とjavascriptで動く、ブラウザベースのコントローラーです。
 
+<img src="./screen_shot.png" width="640" alt="スクリーンショット">
+
 # 使い方
 1. コントローラーの受信側(NUCやESP32等)でWebサーバーを立て、コントローラー(操作用ノートPC等)からのhttpリクエストに対し、```index.html```をhttpレスポンスとして返す
 1. 受信側で、Webサーバーとは別にWebSocketサーバーを立てる。(ポートは443番を使用)
